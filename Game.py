@@ -41,3 +41,7 @@ class Game:
         self.deck.shuffle()
         for player in self.players:
             player.setCards(self.deck.deal())
+
+
+class CheckWin:
+    pass #this is for u to do mateo :)
