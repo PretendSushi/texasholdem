@@ -1,49 +1,157 @@
-from Cards import Deck, Card
+
+from enum import Enum
+from random import randint
+
+class Suit(str, Enum):
+    SPADE = "Spade"
+    CLUB = "Club"
+    HEART = "Heart"
+    DIAMOND = "Diamond"
+
+class Rank(Enum):
+    ACE = ("Ace", 14)
+    TWO = ("2", 2)
+    THREE = ("3", 3)
+    FOUR = ("4", 4)
+    FIVE = ("5", 5)
+    SIX = ("6", 6)
+    SEVEN = ("7", 7)
+    EIGHT = ("8", 8)
+    NINE = ("9", 9)
+    TEN = ("10", 10)
+    JACK = ("Jack", 11)
+    QUEEN = ("Queen", 12)
+    KING = ("King", 13)
+
+    def __new__(cls, label, value):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.label = label
+        return obj
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self._value_ < other._value_
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self._value_ <= other._value_
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self._value_ > other._value_
+        return NotImplemented
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self._value_ >= other._value_
+        return NotImplemented
+
+    def __str__(self):
+        return self.label
+
+class Card:
+    def __init__(self, suit, rank):
+        self.suit = suit
+        self.rank = rank
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.rank < other.rank
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.rank <= other.rank
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.rank > other.rank
+        return NotImplemented
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.rank >= other.rank
+        return NotImplemented
+
+    def __eq__(self, other):
+        if self.__class__ is other.__class__:
+            return self.rank == other.rank and self.suit == other.suit
+        return NotImplemented
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        return f"{self.rank} of {self.suit}s"
+
+    def __repr__(self):
+        return self.__str__()
+
+class Deck:
+    def __init__(self):
+        self.deck = [Card(suit, rank) for suit in Suit for rank in Rank]
+
+    def shuffle(self):
+        for i in range(len(self.deck)):
+            j = randint(i, len(self.deck) - 1)
+            self.deck[i], self.deck[j] = self.deck[j], self.deck[i]
+
+    def deal(self):
+        return self.deck.pop()
+
+
 
 class Player:
-    name = None
-    cards = []
-
-    def __init__(self, name, cards):
+    def __init__(self, name, cards=None):
         self.name = name
-        self.cards = cards
+        self.cards = cards if cards is not None else []
 
     def setCards(self, card):
-        self.cards.append[card]
+        self.cards.append(card)
+
+    def showHand(self):  # New method to print the player's hand
+        print(f"{self.name}'s hand: {self.cards}")
+
 
 class Game:
-    players = []
-    deck = None
-
     def __init__(self):
-        self.players = self.gameStart()
+        self.players = []
         self.deck = Deck()
 
     def gameStart(self):
         print("Game Start:")
-        print("Enter \"start\" to start the game")
-        start = False
-        idx = 1
-        while len(self.players) < 2 and start == False:
-            inp = input("Enter the name for player " + idx)
-            if inp == "start" and len(self.players) >= 2:
-                if len(self.players < 2):
-                    print("You must have at least 2 players, you have "+ len(self.players)+" players")
-                start = True
-            else:
-                self.players.append(inp)
-
-    def gameLoop(self):
-        pass
+        for i in range(1, 4):
+            name = "Player " + str(i)
+            self.players.append(Player(name))
 
     def deal(self):
-        self.deck = Deck()
         self.deck.shuffle()
         for player in self.players:
-            player.setCards(self.deck.deal())
+            for _ in range(2):  # Each player receives 2 cards
+                player.setCards(self.deck.deal())
 
+    def revealRiver(self):
+        self.river = [self.deck.deal() for _ in range(5)]  # Reveal 5 cards on the "river"
+        print("River cards: ", self.river)
 
 class CheckWin:
+    HAND_RANKS = {
+        "high_card": 1,
+        "pair": 2,
+        "two_pair": 3,
+        "three_kind": 4,
+        "straight": 5,
+        "flush": 6,
+        "full_house": 7,
+        "four_kind": 8,
+        "straight_flush": 9,
+        "royal_flush": 10,
+    }
+
     def identify_hand(self, cards):
         card_values = [card.rank for card in cards]
         card_suits = [card.suit for card in cards]
@@ -79,9 +187,8 @@ class CheckWin:
         
         # Checking for Straight
         if self.is_straight(card_values):
-            straight_cards = sorted((card for card in cards if card.rank in range(max(card_values)-4, max(card_values)+1)), key=lambda card: card.rank, reverse=True)
+            straight_cards = sorted((card for card in cards if card.rank._value_ in range(max(card_values)._value_-4, max(card_values)._value_+1)), key=lambda card: card.rank, reverse=True)
             return (self.HAND_RANKS["straight"], straight_cards)
-
         # Checking for Three of a Kind or Two Pair
         if three_kind_value:
             three_kind_cards = [card for card in cards if card.rank == three_kind_value]
@@ -108,9 +215,34 @@ class CheckWin:
         unique_values = list(set(values))
         unique_values.sort(reverse=True)
         for i in range(len(unique_values) - 4):
-            if unique_values[i] - unique_values[i+4] == 4:
+            if unique_values[i]._value_ - unique_values[i+4]._value_ == 4:
                 return True
         # Check for 'wheel' straight: 5-4-3-2-A
-        if set(unique_values) & {14, 2, 3, 4, 5} == {14, 2, 3, 4, 5}:
+        if set(unique_values) & {Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE} == {Rank.ACE, Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE}:
             return True
         return False
+
+def main():
+    game = Game()
+    game.gameStart()
+    game.deal()
+
+    for player in game.players:
+        print(f"{player.name}'s hand: {player.cards}")
+
+    game.revealRiver()
+
+    checker = CheckWin()
+    best_hand = (0, [])
+    best_player = None
+    for player in game.players:
+        player_hand = player.cards + game.river
+        hand_rank, best_cards = checker.identify_hand(player_hand)
+        print(f"{player.name}'s best hand: {best_cards} of rank {hand_rank}")
+        if hand_rank > best_hand[0] or (hand_rank == best_hand[0] and best_cards[0].rank > best_hand[1][0].rank):
+            best_hand = (hand_rank, best_cards)
+            best_player = player
+    print(f"Best hand: {best_hand[1]} of rank {best_hand[0]} by {best_player.name}")
+
+if __name__ == "__main__":
+    main()
