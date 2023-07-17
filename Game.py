@@ -1,15 +1,23 @@
 from Cards import Deck, Card
+import copy
 
 class Player:
     name = None
     cards = []
+    chips = -1
 
-    def __init__(self, name, cards):
+    def __init__(self, name, startingChips):
         self.name = name
-        self.cards = cards
+        self.chips = startingChips
 
     def setCards(self, card):
         self.cards.append[card]
+
+    def addChips(self, winnings):
+        self.chips += winnings
+
+    def bet(self, bet):
+        self.chips -= bet
 
 class Game:
     players = []
@@ -18,6 +26,7 @@ class Game:
     def __init__(self):
         self.players = self.gameStart()
         self.deck = Deck()
+        self.gameLoop()
 
     def gameStart(self):
         print("Game Start:")
@@ -32,9 +41,54 @@ class Game:
                 start = True
             else:
                 self.players.append(inp)
+        
+        startingChips = input("Enter the starting chips for each player")
+
+        for player in self.players:
+            name = player
+            player = Player(name, startingChips)
 
     def gameLoop(self):
-        pass
+        self.gameStart()
+        self.deal()
+        
+        print("Starting a new hand...")
+        hands = 0
+        while(True):
+            pot = Pot()
+            currPlayers = copy.deepcopy(self.players)
+            maxBet = 0
+            #preflop
+            print("Action is on " + currPlayers[hands])
+            print("Current bet is: " + maxBet)
+            print("Select your action: \n 1) Check or Call \n 2) Raise \n 3) Fold \n")
+            action = input()
+            action = int(action)
+            while action < 0 or action > 3:
+                print("Invalid selection. Please select an available action")
+                action = input()
+            
+            for player in currPlayers:
+                if action == 3:
+                    del currPlayers[hands]
+                else:
+                    self.actions(action, player, pot)
+            #flop
+            #turn
+            #river
+    
+    def actions(self, action, player, pot):
+        if action == 1:
+            if maxBet > 0:
+                player.bet(maxBet)
+                print("Called")
+            else:
+                print("Checked")
+                
+            if action == 2: 
+                maxBet = input("How much would you like to raise?")
+                pot.addPot(maxBet)
+
 
     def deal(self):
         self.deck = Deck()
@@ -42,6 +96,18 @@ class Game:
         for player in self.players:
             player.setCards(self.deck.deal())
 
+
+class Pot:
+    total = 0
+
+    def __init__(self):
+        self.total = 0
+
+    def addPot(self, value):
+        self.total += value
+
+    def giftPot(self, winner):
+        winner.addChips(self.total)
 
 class CheckWin:
     def identify_hand(self, cards):
