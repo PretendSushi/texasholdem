@@ -54,10 +54,10 @@ class Game:
         
         print("Starting a new hand...")
         hands = 0
-        while(True):
-            pot = Pot()
-            currPlayers = copy.deepcopy(self.players)
-            maxBet = 0
+        currPlayers = copy.deepcopy(self.players) #make a copy of the player array to pop from
+        while currPlayers > 1:
+            pot = Pot() #initialize pot
+            maxBet = 0 #highest bet is zero at the beginning
             #preflop
             print("Action is on " + currPlayers[hands])
             print("Current bet is: " + maxBet)
@@ -67,15 +67,30 @@ class Game:
             while action < 0 or action > 3:
                 print("Invalid selection. Please select an available action")
                 action = input()
-            
+            self.gameplay(action, currPlayers, hands, pot, maxBet)
+
+            #flop
+            for i in range(3):
+                print("Card " + (i+1) + " is" + self.deck.pop())     
+            self.gameplay(action, currPlayers, hands, pot, maxBet)
+            #turn
+            print("Card 4 is " + self.deck.pop())
+            self.gameplay(action, currPlayers, hands, pot, maxBet)
+            #river
+            print("Card 5 is " + self.deck.pop())
+            self.gameplay(action, currPlayers, hands, pot, maxBet)
+
+    def gameplay(self, action, currPlayers, hands, pot, maxBet):
+        while True:
             for player in currPlayers:
                 if action == 3:
                     del currPlayers[hands]
                 else:
                     self.actions(action, player, pot)
-            #flop
-            #turn
-            #river
+                    if action == 2:
+                        lastRaise = maxBet
+            if lastRaise == maxBet:
+                break
     
     def actions(self, action, player, pot):
         if action == 1:
